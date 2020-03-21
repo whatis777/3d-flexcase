@@ -13,11 +13,6 @@ $fn = 40;
 sleeveHullThickness = 2;
 sleeveHeight = 6;
 
-// The screw threading diameter tolerance.
-// Will be added to hole diameters where screws should slide through
-// Will be subtracted from hole diameters where screws should be screwed in tightly
-screwDiameterTolerance = 1.0;
-
 //Customize Screw blocks
 //---------------------------
 screwBlockWidth = 10;
@@ -48,7 +43,7 @@ module cover(width, length, height, hullThickness, cornerRadius, screwDiameter) 
         y_toMove = (length-screwBlockWidth)/2 -hullThickness;
         z_toMove = (height)/2;
         headLength = 3;
-        holeDiameter = screwDiameter + screwDiameterTolerance;
+        holeDiameter = screwDiameter + 0.33;
         
         translate([x_toMove, y_toMove, -z_toMove]) zcyl(l= height * 10, d=holeDiameter);
         translate([-x_toMove, y_toMove, -z_toMove]) zcyl(l=height * 10, d=holeDiameter);
@@ -164,10 +159,10 @@ module _raw_screw_block(width, height, hullThickness, cornerRadius, withThreadin
 
         //create metric screw hole   
         if(withThreadingHole) {
-            holeDepth = height - hullThickness;     
-            holeDiameter = screwDiameter + screwDiameterTolerance;
-            translate([0, 0, (height+difference_overlap)/2]) 
-                zcyl(l= holeDepth + difference_overlap, d=holeDiameter);
+            holeDiameter = screwDiameter - 1.0; // make it smaller so that the screw has enough grip
+            //(height+difference_overlap)/2
+            translate([0, 0, (hullThickness + difference_overlap)/2]) 
+                zcyl(l= height - hullThickness + difference_overlap, d=holeDiameter);
         }
     }
 }
