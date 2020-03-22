@@ -11,7 +11,6 @@ use <BOSL/transforms.scad>
 $fn = 40;
 
 sleeveHullThickness = 2;
-sleeveHeight = 6;
 
 //Customize Screw blocks
 //---------------------------
@@ -26,35 +25,71 @@ difference_overlap = 0.1;
 /**
 * Creates the cover of the housing / enclosure
 * 
-* @param width The Width (x) of the housing (outer dimension)
-* @param length The Length (y) of the housing (outer dimension)
-* @param height The height (z) of the housing cover (outer dimension). Overlapping sleeve is not included.
+* @param trayWidth The Width (x) of the housing (outer dimension)
+* @param trayLength The Length (y) of the housing (outer dimension)
+* @param effectiveHeight The height (z) of the housing cover (outer dimension). Overlapping sleeve is not included.
 * @param hullThickness The thickness of the hull
 * @param cornerRadius Radius of the corners/edges
 * @param screwDiameter The diameter of the screw threading
 */
-module cover(width, length, height, hullThickness, cornerRadius, screwDiameter) {
-    _printInnerDimensions("Cover", width, length, height, hullThickness);
+module cover(trayWidth, trayLength, effectiveHeight, hullThickness, cornerRadius, screwDiameter) {
+    sleeveOverlap = 4.0;
+    width = trayWidth + 2*sleeveHullThickness;
+    length = trayLength + 2*sleeveHullThickness;
+    height = effectiveHeight + sleeveOverlap;
     
     difference() {
-        _enclusure_half(width, length, height, hullThickness, cornerRadius, false);
-        // Add & place screw blocks in the corners:
-        x_toMove = (width-screwBlockWidth)/2 -hullThickness;
-        y_toMove = (length-screwBlockWidth)/2 -hullThickness;
-        z_toMove = (height)/2;
-        headLength = 3;
-        holeDiameter = screwDiameter + 0.33;
+        rawCover();
+        screwHoles();
+    }
+    
+    // sub-module
+    module rawCover() {
+        sleeveTolerance= 0.4;
+        difference() {
+            // raw block
+            cuboid([width,length,height], fillet=cornerRadius, edges=EDGES_Z_ALL);
+            
+            // clearance as in tray:
+            translate([0,0,hullThickness/2 + difference_overlap/2]) 
+                cuboid([trayWidth-2*hullThickness,trayLength-2*hullThickness,height-hullThickness + difference_overlap], fillet=cornerRadius, edges=EDGES_Z_ALL);
+            
+            // sleeve clearance
+            translate([0,0,(height-sleeveOverlap + difference_overlap)/2])
+                cuboid([width-2*sleeveHullThickness + sleeveTolerance,length-2*sleeveHullThickness + sleeveTolerance, sleeveOverlap + difference_overlap], fillet=cornerRadius, edges=EDGES_Z_ALL);
+        } 
         
+        screwBlocks();
+    }
+    
+    // sub-module
+    module screwBlocks() {
+        screwBlockHeight = height-sleeveOverlap-hullThickness;
+        
+        moveX = (width-screwBlockWidth)/2 -sleeveHullThickness- hullThickness;
+        moveY = (length-screwBlockWidth)/2-sleeveHullThickness - hullThickness;
+        moveZ = -(height/2 - hullThickness) +screwBlockHeight/2;
+        
+        translate([moveX, moveY, moveZ]) cuboid([screwBlockWidth,screwBlockWidth, screwBlockHeight], fillet=cornerRadius, edges=EDGE_FR_LF);
+        translate([-moveX, moveY, moveZ]) cuboid([screwBlockWidth,screwBlockWidth, screwBlockHeight], fillet=cornerRadius, edges=EDGE_FR_RT);
+        translate([moveX, -moveY, moveZ]) cuboid([screwBlockWidth,screwBlockWidth, screwBlockHeight], fillet=cornerRadius, edges=EDGE_BK_LF);
+        translate([-moveX, -moveY, moveZ]) cuboid([screwBlockWidth,screwBlockWidth, screwBlockHeight], fillet=cornerRadius, edges=EDGE_BK_RT);
+    }
+    
+    // sub-module
+    module screwHoles() {
+        // Add & place screw blocks in the corners:
+        x_toMove = (width-screwBlockWidth)/2 -sleeveHullThickness- hullThickness;
+        y_toMove = (length-screwBlockWidth)/2 -sleeveHullThickness- hullThickness;
+        z_toMove = (height)/2;
+        
+        // Screw holes
+        holeDiameter = screwDiameter + 0.33;        
         translate([x_toMove, y_toMove, -z_toMove]) zcyl(l= height * 10, d=holeDiameter);
         translate([-x_toMove, y_toMove, -z_toMove]) zcyl(l=height * 10, d=holeDiameter);
         translate([x_toMove, -y_toMove, -z_toMove]) zcyl(l=height * 10, d=holeDiameter);
         translate([-x_toMove, -y_toMove, -z_toMove]) zcyl(l=height * 10, d=holeDiameter);
     }
-    
-    // add sleeve
-    sleeveWidth = width + 2*sleeveHullThickness;
-    sleeveLength = length + 2*sleeveHullThickness;
-    translate([0,0, height/2]) _sleeve(sleeveWidth, sleeveLength, sleeveHeight, sleeveHullThickness, hullThickness, cornerRadius);
 }
 
 
@@ -87,20 +122,6 @@ module _printInnerDimensions(component, width, length, height, hullThickness) {
     echo("maximum length=", length - 2* hullThickness);
     echo("minimum length (between screwblocks)=", length -2* screwBlockWidth - 2* hullThickness);
     echo("height=", height - hullThickness);
-}
-
-/**
-Creates the sleeve of the cover (water / rain protection)
-*/
-module _sleeve(width, length, height, sleeveHullThickness, hullThickness, cornerRadius) {
-    tolerance= 0.4;
-        
-    difference() {
-        cuboid([width,length,height], chamfer=height/2, edges=EDGES_BOTTOM+EDGES_Z_ALL, $fn=24);
-        _raw_block(width-2*hullThickness, length-2*hullThickness, height, cornerRadius);
-        // for additional tolerance at the overlapping part of the sleeve:
-        translate([0,0,height/4 + difference_overlap/2]) _raw_block(width-2*sleeveHullThickness + tolerance, length-2*sleeveHullThickness + tolerance, height/2 +difference_overlap, cornerRadius);
-    }
 }
 
 

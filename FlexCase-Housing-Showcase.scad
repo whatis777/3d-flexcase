@@ -15,11 +15,13 @@ enclusureLength = 120;
 enclusureHeightTray = 30;
 enclusureHeightCover = 3;
 hullThickness = 2;
-cornerRadius = 2;
+cornerRadius = 2.5;
 screwDiameter = 4;
 
 // The cover of the housing:
-translate([enclosureWidth / 2 + 10, 0, enclusureHeightCover/2]) cover(enclosureWidth, enclusureLength, enclusureHeightCover, hullThickness, cornerRadius, screwDiameter);
+translate([enclosureWidth / 2 + 10, 0, enclusureHeightCover/2]) 
+    cover(enclosureWidth, enclusureLength, enclusureHeightCover, hullThickness, cornerRadius, screwDiameter);
 
 // The tray of the housing:
-translate([-enclosureWidth / 2 -10, 0, enclusureHeightTray/2]) tray(enclosureWidth, enclusureLength, enclusureHeightTray, hullThickness, cornerRadius, screwDiameter);
+translate([-enclosureWidth / 2 -10, 0, enclusureHeightTray/2]) 
+    tray(enclosureWidth, enclusureLength, enclusureHeightTray, hullThickness, cornerRadius, screwDiameter);
