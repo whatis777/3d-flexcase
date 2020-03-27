@@ -28,15 +28,15 @@ difference_overlap = 0.1;
 * @param trayWidth The Width (x) of the housing (outer dimension)
 * @param trayLength The Length (y) of the housing (outer dimension)
 * @param effectiveHeight The height (z) of the housing cover (outer dimension). Overlapping sleeve is not included.
+* @param coverSleeveOverlap the overlap of the cover sleeve over the tray
 * @param hullThickness The thickness of the hull
 * @param cornerRadius Radius of the corners/edges
 * @param screwDiameter The diameter of the screw threading
 */
-module cover(trayWidth, trayLength, effectiveHeight, hullThickness, cornerRadius, screwDiameter) {
-    sleeveOverlap = 4.0;
+module cover(trayWidth, trayLength, effectiveHeight, coverSleeveOverlap, hullThickness, cornerRadius, screwDiameter) {
     width = trayWidth + 2*sleeveHullThickness;
     length = trayLength + 2*sleeveHullThickness;
-    height = effectiveHeight + sleeveOverlap;
+    height = effectiveHeight + coverSleeveOverlap;
     
     difference() {
         rawCover();
@@ -55,8 +55,8 @@ module cover(trayWidth, trayLength, effectiveHeight, hullThickness, cornerRadius
                 cuboid([trayWidth-2*hullThickness,trayLength-2*hullThickness,height-hullThickness + difference_overlap], fillet=cornerRadius, edges=EDGES_Z_ALL);
             
             // sleeve clearance
-            translate([0,0,(height-sleeveOverlap + difference_overlap)/2])
-                cuboid([width-2*sleeveHullThickness + sleeveTolerance,length-2*sleeveHullThickness + sleeveTolerance, sleeveOverlap + difference_overlap], fillet=cornerRadius, edges=EDGES_Z_ALL);
+            translate([0,0,(height-coverSleeveOverlap + difference_overlap)/2])
+                cuboid([width-2*sleeveHullThickness + sleeveTolerance,length-2*sleeveHullThickness + sleeveTolerance, coverSleeveOverlap + difference_overlap], fillet=cornerRadius, edges=EDGES_Z_ALL);
         } 
         
         screwBlocks();
@@ -64,7 +64,7 @@ module cover(trayWidth, trayLength, effectiveHeight, hullThickness, cornerRadius
     
     // sub-module
     module screwBlocks() {
-        screwBlockHeight = height-sleeveOverlap-hullThickness;
+        screwBlockHeight = height-coverSleeveOverlap-hullThickness;
         
         moveX = (width-screwBlockWidth)/2 -sleeveHullThickness- hullThickness;
         moveY = (length-screwBlockWidth)/2-sleeveHullThickness - hullThickness;
